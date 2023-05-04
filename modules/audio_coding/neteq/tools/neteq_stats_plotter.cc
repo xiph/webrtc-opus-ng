@@ -106,6 +106,10 @@ void NetEqStatsPlotter::SimulationEnded(int64_t simulation_time_ms) {
            lifetime_stats.generated_noise_samples);
     printf("  packets_discarded: %" PRIu64 "\n",
            lifetime_stats.packets_discarded);
+#ifdef CHIME_CUSTOMIZE
+    printf("  fec_packets_received: %" PRIu64 "\n",
+           lifetime_stats.fec_packets_received);
+#endif
   }
 }
 

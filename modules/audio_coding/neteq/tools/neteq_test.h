@@ -56,6 +56,9 @@ class NetEqGetAudioCallback {
                              const AudioFrame& audio_frame,
                              bool muted,
                              NetEq* neteq) = 0;
+#ifdef CHIME_CUSTOMIZE
+  virtual void SimulationEnded(int64_t time_now_ms, NetEq* neteq) {}
+#endif
 };
 
 class NetEqSimulationEndedCallback {

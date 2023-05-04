@@ -67,6 +67,10 @@ class NetEqStatsGetter : public NetEqGetAudioCallback {
                      bool muted,
                      NetEq* neteq) override;
 
+#ifdef CHIME_CUSTOMIZE
+  void SimulationEnded(int64_t time_now_ms, NetEq* neteq) override;
+#endif
+
   double AverageSpeechExpandRate() const;
 
   NetEqDelayAnalyzer* delay_analyzer() const { return delay_analyzer_.get(); }
