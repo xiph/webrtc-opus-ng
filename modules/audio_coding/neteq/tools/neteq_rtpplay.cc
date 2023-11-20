@@ -20,6 +20,8 @@
 #include "rtc_base/strings/string_builder.h"
 #include "system_wrappers/include/field_trial.h"
 #include "test/field_trial.h"
+// TODO(klingm@amazon.com): remove debugging
+// #include "rtc_base/logging.h"
 
 using TestConfig = webrtc::test::NetEqTestFactory::Config;
 
@@ -305,6 +307,8 @@ int main(int argc, char* argv[]) {
     std::cout << usage;
     exit(0);
   }
+  // TODO(klingm@amazon.com): remove debugging
+  // rtc::LogMessage::LogToDebug(rtc::LS_INFO);
   const std::string output_audio_filename((args.size() == 3) ? args[2] : "");
   const std::string output_files_base_name(
       absl::GetFlag(FLAGS_output_files_base_name));

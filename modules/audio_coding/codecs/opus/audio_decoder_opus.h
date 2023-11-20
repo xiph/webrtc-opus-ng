@@ -33,6 +33,13 @@ class AudioDecoderOpusImpl final : public AudioDecoder {
 
   std::vector<ParseResult> ParsePayload(rtc::Buffer&& payload,
                                         uint32_t timestamp) override;
+  std::vector<ParseResult> ParsePayloadRedundancy(rtc::Buffer&& payload,
+                                                  uint32_t timestamp,
+                                                  uint32_t recovery_timestamp_offset) override;
+
+  void GeneratePlc(size_t requested_samples_per_channel,
+                   rtc::BufferT<int16_t>* concealment_audio) override;
+
   void Reset() override;
   int PacketDuration(const uint8_t* encoded, size_t encoded_len) const override;
   int PacketDurationRedundant(const uint8_t* encoded,
@@ -53,10 +60,16 @@ class AudioDecoderOpusImpl final : public AudioDecoder {
                               int16_t* decoded,
                               SpeechType* speech_type) override;
 
+  int DecodeDredInternal(const uint8_t *encoded,
+                         size_t encoded_len,
+                         uint32_t primary_timestamp,
+                         int16_t* decoded,
+                         int index) override;
  private:
   OpusDecInst* dec_state_;
   const size_t channels_;
   const int sample_rate_hz_;
+  uint32_t last_decoded_dred_timestamp_;
 };
 
 }  // namespace webrtc

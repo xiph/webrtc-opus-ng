@@ -651,7 +651,14 @@ size_t AudioEncoderOpusImpl::SufficientOutputBufferSize() const {
       static_cast<size_t>(GetBitrateBps(config_) / (1000 * 8) + 1);
   const size_t approx_encoded_bytes =
       Num10msFramesPerPacket() * 10 * bytes_per_millisecond;
-  return 2 * approx_encoded_bytes;
+#if WEBRTC_OPUS_SUPPORT_DRED
+  // reserve 160 additional extra bytes for DRED
+  // assumes a maximum of 64 Kbps of DRED with 20 msec. packets
+  const size_t dred_bytes_per_packet = 160;
+#else
+  const size_t dred_bytes_per_packet = 0;
+#endif
+  return 2 * approx_encoded_bytes + dred_bytes_per_packet;
 }
 
 // If the given config is OK, recreate the Opus encoder instance with those
@@ -681,6 +688,8 @@ bool AudioEncoderOpusImpl::RecreateEncoderInstance(
   } else {
     RTC_CHECK_EQ(0, WebRtcOpus_DisableFec(inst_));
   }
+  RTC_CHECK_EQ(0, WebRtcOpus_SetDredDuration(inst_, config.dred));
+  RTC_LOG(LS_VERBOSE) << "Set Opus DRED to " << config.dred << " 10 msec. frames";
   RTC_CHECK_EQ(
       0, WebRtcOpus_SetMaxPlaybackRate(inst_, config.max_playback_rate_hz));
   // Use the default complexity if the start bitrate is within the hysteresis
@@ -703,6 +712,17 @@ bool AudioEncoderOpusImpl::RecreateEncoderInstance(
   }
   num_channels_to_encode_ = NumChannels();
   next_frame_length_ms_ = config_.frame_size_ms;
+  RTC_LOG(LS_VERBOSE) << "Opus encoder config  " <<
+  "  chans: " << config.num_channels <<
+  "  application: " << config.application <<
+  "  bitrate: " << bitrate <<
+  "  fec: " << config.fec_enabled <<
+  "  dred: " << config.dred <<
+  "  max playback rate: " << config.max_playback_rate_hz <<
+  "  complexity: " << complexity_ <<
+  "  dtx: " << config.dtx_enabled <<
+  "  num channels to encode: " << num_channels_to_encode_ <<
+  "  frame size msec.: " << config_.frame_size_ms;
   return true;
 }
 

@@ -441,6 +441,26 @@ int16_t WebRtcOpus_SetBandwidth(OpusEncInst* inst, int32_t bandwidth) {
   }
 }
 
+int16_t WebRtcOpus_SetDredDuration(OpusEncInst* inst, int32_t duration) {
+  if (inst) {
+    return ENCODER_CTL(inst, OPUS_SET_DRED_DURATION(duration));
+  } else {
+    return -1;
+  }
+}
+
+int32_t WebRtcOpus_GetDredDuration(OpusEncInst* inst) {
+  if (!inst) {
+    return -1;
+  }
+  int32_t duration;
+  if (ENCODER_CTL(inst, OPUS_GET_DRED_DURATION(&duration)) == 0) {
+    return duration;
+  } else {
+    return -1;
+  }
+}
+
 int16_t WebRtcOpus_SetForceChannels(OpusEncInst* inst, size_t num_channels) {
   if (!inst)
     return -1;
@@ -493,12 +513,18 @@ int16_t WebRtcOpus_DecoderCreate(OpusDecInst** inst,
       }
       state->in_dtx_mode = 0;
       *inst = state;
-      return 0;
+      // TODO(klingm@amazon.com): creating the DRED decoder should be made optional
+      state->dred_decoder =
+          opus_dred_decoder_create(&error);
+      if (error == OPUS_OK && state->dred_decoder)
+        return 0;
     }
-
     // If memory allocation was unsuccessful, free the entire state.
     if (state->decoder) {
       opus_decoder_destroy(state->decoder);
+    }
+    if (state->dred_decoder) {
+      opus_dred_decoder_destroy(state->dred_decoder);
     }
     free(state);
   }
@@ -553,6 +579,9 @@ int16_t WebRtcOpus_DecoderFree(OpusDecInst* inst) {
       opus_decoder_destroy(inst->decoder);
     } else if (inst->multistream_decoder) {
       opus_multistream_decoder_destroy(inst->multistream_decoder);
+    }
+    if (inst->dred_decoder) {
+      opus_dred_decoder_destroy(inst->dred_decoder);
     }
     free(inst);
     return 0;
@@ -702,6 +731,29 @@ int WebRtcOpus_DecodeFec(OpusDecInst* inst,
   }
 
   return decoded_samples;
+}
+
+int WebRtcOpus_DecodeDred(OpusDecInst* inst,
+                          const uint8_t *dred_data,
+                          int16_t *decoded,
+                          int offset) {
+  int dred_samples = inst->sample_rate_hz/100;
+  if (!inst->decoder)
+    return 0;
+  return opus_decoder_dred_decode(inst->decoder, reinterpret_cast<const OpusDRED *>(dred_data),
+      offset * dred_samples, decoded, dred_samples);
+}
+
+int WebRtcOpus_DredParse(OpusDecInst *inst,
+                         uint8_t *dred_data,
+                         const uint8_t* encoded,
+                         size_t length_bytes,
+                         int max_samples) {
+  if (!inst->dred_decoder)
+    return 0;
+  // NOTE: processing *not* deferred, RDOVAE data will be decoded
+  return opus_dred_parse(inst->dred_decoder, reinterpret_cast<OpusDRED *>(dred_data),
+      encoded, static_cast<opus_int32>(length_bytes), max_samples, inst->sample_rate_hz, 0);
 }
 
 int WebRtcOpus_DurationEst(OpusDecInst* inst,

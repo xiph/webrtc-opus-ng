@@ -321,6 +321,27 @@ int32_t WebRtcOpus_GetBandwidth(OpusEncInst* inst);
 int16_t WebRtcOpus_SetBandwidth(OpusEncInst* inst, int32_t bandwidth);
 
 /*
+ * WebRtcOpus_SetDredDuration(...)
+ *
+ * Enable Deep Redundancy (DRED) and use the specified maximum number of 10 msec.
+ * redundant frames.
+ *
+ * Return value              :  0 - Success
+ *                             -1 - Error
+ */
+int16_t WebRtcOpus_SetDredDuration(OpusEncInst* inst, int32_t duration);
+
+/*
+ * WebRtcOpus_GetDredDuration(...)
+ *
+ * Get the current encoder Deep Redundancy (DRED) configuration.
+ *
+ * Return value              : >=0 - Number of 10 msec. redudndant frames.
+ *                              -1 - Error
+ */
+int32_t WebRtcOpus_GetDredDuration(OpusEncInst* inst);
+
+/*
  * WebRtcOpus_GetInDtx(...)
  *
  * Gets the DTX state of the encoder.
@@ -457,6 +478,33 @@ int WebRtcOpus_DecodeFec(OpusDecInst* inst,
                          size_t encoded_bytes,
                          int16_t* decoded,
                          int16_t* audio_type);
+
+/****************************************************************************
+ * WebRtcOpus_DecodeDred(...)
+ *
+ * This function decodes the DRED information cached in the decoder
+ * into a 10 msec. slice of audio
+ *
+ * Input:
+ *      - inst               : Decoder context
+ *      - offset             : Which DRED segment to decode, in units of 10 msec.
+ *
+ * Output:
+ *      - decoded            : The decoded audio
+ *
+ * Return value              : >0 - Samples per channel in decoded vector
+ *                             -1 - Error
+ */
+int WebRtcOpus_DecodeDred(OpusDecInst* inst,
+                          const uint8_t *dred_data,
+                          int16_t *decoded,
+                          int offset);
+
+int WebRtcOpus_DredParse(OpusDecInst *inst,
+                         uint8_t *dred_data,
+                         const uint8_t* encoded,
+                         size_t length_bytes,
+                         int max_samples);
 
 /****************************************************************************
  * WebRtcOpus_DurationEst(...)

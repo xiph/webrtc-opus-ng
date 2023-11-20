@@ -33,6 +33,7 @@ struct WebRtcOpusEncInst {
 struct WebRtcOpusDecInst {
   OpusDecoder* decoder;
   OpusMSDecoder* multistream_decoder;
+  OpusDREDDecoder *dred_decoder;
   int prev_decoded_samples;
   bool plc_use_prev_decoded_samples;
   size_t channels;

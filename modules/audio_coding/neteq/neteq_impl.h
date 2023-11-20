@@ -336,6 +336,9 @@ class NetEqImpl : public webrtc::NetEq {
   NetEqNetworkStatistics CurrentNetworkStatisticsInternal() const
       RTC_EXCLUSIVE_LOCKS_REQUIRED(mutex_);
 
+  void LogStats(const char *prefix) const
+      RTC_EXCLUSIVE_LOCKS_REQUIRED(mutex_);
+
   Clock* const clock_;
 
   mutable Mutex mutex_;

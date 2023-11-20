@@ -93,6 +93,16 @@ class AudioDecoder {
   virtual std::vector<ParseResult> ParsePayload(rtc::Buffer&& payload,
                                                 uint32_t timestamp);
 
+  virtual std::vector<ParseResult> ParsePayloadRedundancy(rtc::Buffer&& payload,
+                                                          uint32_t timestamp,
+                                                          uint32_t recovery_timestamp_offset);
+
+  int DecodeDred(const uint8_t *encoded,
+                 size_t encoded_len,
+                 uint32_t primary_timestamp,
+                 int16_t* decoded,
+                 int index);
+
   // TODO(bugs.webrtc.org/10098): The Decode and DecodeRedundant methods are
   // obsolete; callers should call ParsePayload instead. For now, subclasses
   // must still implement DecodeInternal.
@@ -189,6 +199,12 @@ class AudioDecoder {
                                       int sample_rate_hz,
                                       int16_t* decoded,
                                       SpeechType* speech_type);
+
+  virtual int DecodeDredInternal(const uint8_t *encoded,
+                                 size_t encoded_len,
+                                 uint32_t primary_timestamp,
+                                 int16_t* decoded,
+                                 int index);
 };
 
 }  // namespace webrtc

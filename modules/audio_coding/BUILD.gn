@@ -496,6 +496,16 @@ rtc_library("webrtc_opus") {
       [ ":webrtc_opus_wrapper" ]
 
   defines = audio_codec_defines
+  if (rtc_opus_use_codec_plc) {
+    defines += [ "WEBRTC_OPUS_USE_CODEC_PLC=1" ]
+  } else {
+    defines += [ "WEBRTC_OPUS_USE_CODEC_PLC=0" ]
+  }
+  if (rtc_opus_support_dred) {
+    defines += [ "WEBRTC_OPUS_SUPPORT_DRED=1" ]
+  } else {
+    defines += [ "WEBRTC_OPUS_SUPPORT_DRED=0" ]
+  }
 }
 
 rtc_library("webrtc_multiopus") {
@@ -1027,6 +1037,7 @@ if (rtc_include_tests) {
         ":neteq_pcmu_quality_test",
         ":neteq_speed_test",
         ":rtp_analyze",
+        ":rtp_apply_loss",
         ":rtp_encode",
         ":rtp_jitter",
         ":rtpcat",
@@ -1389,6 +1400,23 @@ if (rtc_include_tests) {
         "//third_party/abseil-cpp/absl/flags:flag",
         "//third_party/abseil-cpp/absl/strings",
       ]
+    }
+
+    rtc_executable("rtp_apply_loss") {
+      testonly = true
+
+      deps = [
+        "//third_party/abseil-cpp/absl/flags:flag",
+        "//third_party/abseil-cpp/absl/flags:parse",
+        "../rtp_rtcp:rtp_rtcp_format",
+      ]
+
+      sources = [
+        "neteq/tools/rtp_apply_loss.cc",
+        "neteq/tools/rtpplay_utils.cc",        
+      ]
+
+      defines = audio_coding_defines
     }
 
     rtc_executable("rtp_encode") {

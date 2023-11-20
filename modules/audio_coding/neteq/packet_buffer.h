@@ -86,6 +86,10 @@ class PacketBuffer {
   virtual int NextHigherTimestamp(uint32_t timestamp,
                                   uint32_t* next_timestamp) const;
 
+  virtual int NextLowerTimestamp(uint32_t timestamp,
+                                 uint32_t* next_timestamp,
+                                 uint32_t* duration) const;
+
   // Returns a (constant) pointer to the first packet in the buffer. Returns
   // NULL if the buffer is empty.
   virtual const Packet* PeekNextPacket() const;
@@ -144,6 +148,8 @@ class PacketBuffer {
            (horizon_samples == 0 ||
             IsNewerTimestamp(timestamp, timestamp_limit - horizon_samples));
   }
+
+  virtual void LogPacketList() const;
 
  private:
   void LogPacketDiscarded(int codec_level);

@@ -36,6 +36,7 @@ AudioEncoderOpusConfig::AudioEncoderOpusConfig()
       application(ApplicationMode::kVoip),
       bitrate_bps(32000),
       fec_enabled(false),
+      dred(0),
       cbr_enabled(false),
       max_playback_rate_hz(48000),
       complexity(kDefaultComplexity),
@@ -69,6 +70,8 @@ bool AudioEncoderOpusConfig::IsOk() const {
   if (complexity < 0 || complexity > 10)
     return false;
   if (low_rate_complexity < 0 || low_rate_complexity > 10)
+    return false;
+  if (dred < 0 || dred > 100)
     return false;
   return true;
 }

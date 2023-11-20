@@ -86,17 +86,13 @@ void NetEqStatsGetter::AfterGetAudio(int64_t time_now_ms,
   }
 }
 
-#ifdef CHIME_CUSTOMIZE
 void NetEqStatsGetter::SimulationEnded(int64_t time_now_ms, NetEq* neteq) {
   const auto lifetime_stat = neteq->GetLifetimeStatistics();
   NetEqNetworkStatistics stats;
   RTC_CHECK_EQ(neteq->NetworkStatistics(&stats), 0);
   stats_.push_back(std::make_pair(time_now_ms, stats));
   lifetime_stats_.push_back(std::make_pair(time_now_ms, lifetime_stat));
-  printf("pushing back FINAL lifetime stat\n");
-  printf("FINAL total_samples_received     %llu\n", lifetime_stat.total_samples_received);
 }
-#endif
 
 double NetEqStatsGetter::AverageSpeechExpandRate() const {
   double sum_speech_expand = std::accumulate(

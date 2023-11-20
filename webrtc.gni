@@ -112,6 +112,13 @@ declare_args() {
   # Enable this to let the Opus audio codec change complexity on the fly.
   rtc_opus_variable_complexity = false
 
+  # Enable to use the output of the built-in Opus packet loss concealment.
+  rtc_opus_use_codec_plc = false
+
+  # Enable to support deep packet loss redundancy (DRED) in Opus.
+  # Opus must also be built with opus_codec_support_dred = true
+  rtc_opus_support_dred = false
+
   # Used to specify an external Jsoncpp include path when not compiling the
   # library that comes with WebRTC (i.e. rtc_build_json == 0).
   rtc_jsoncpp_root = "//third_party/jsoncpp/source/include"

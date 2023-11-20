@@ -90,12 +90,10 @@ int64_t NetEqTest::Run() {
     step_result = RunToNextGetAudio();
     simulation_time += step_result.simulation_step_ms;
   } while (!step_result.is_simulation_finished);
-#ifdef CHIME_CUSTOMIZE
   // final lifetime stats
   if (callbacks_.get_audio_callback) {
     callbacks_.get_audio_callback->SimulationEnded(simulation_time, neteq_.get());
   }
-#endif
   if (callbacks_.simulation_ended_callback) {
     callbacks_.simulation_ended_callback->SimulationEnded(simulation_time);
   }

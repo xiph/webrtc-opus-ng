@@ -500,7 +500,9 @@ int NetEqImpl::InsertPacketInternal(const RTPHeader& rtp_header,
     RTC_LOG_F(LS_ERROR) << "payload is empty";
     return kInvalidPointer;
   }
-
+  // TODO(klingm@amazon.com): remove debugging
+  // RTC_LOG(LS_INFO) << "InsertPacketInternal begin";
+  // packet_buffer_->LogPacketList();
   Timestamp receive_time = clock_->CurrentTime();
   stats_->ReceivedPacket();
 
@@ -646,10 +648,32 @@ int NetEqImpl::InsertPacketInternal(const RTPHeader& rtp_header,
         new_packet.frame = std::move(result.frame);
         return new_packet;
       };
+      uint32_t previous_timestamp;
+      uint32_t duration = decoder_frame_length_;
+      int result = packet_buffer_->NextLowerTimestamp(packet.timestamp, &previous_timestamp, &duration);
+      if (result == kOK) {
+        previous_timestamp += duration;
+      } else {
+        previous_timestamp = sync_buffer_->end_timestamp();
+      }
+      uint32_t current_gap = packet.timestamp - previous_timestamp;
+      // TODO(klingm@amazon.com): remove debugging
+      // RTC_LOG(LS_INFO) << "insert parse payload: " << packet.timestamp <<
+      //   " current gap: " << current_gap;
 
       std::vector<AudioDecoder::ParseResult> results =
-          info->GetDecoder()->ParsePayload(std::move(packet.payload),
-                                           packet.timestamp);
+          info->GetDecoder()->ParsePayloadRedundancy(std::move(packet.payload),
+                                             packet.timestamp, current_gap);
+      if (!results.empty())
+      {
+        // TODO(klingm@amazon.com): remove debugging
+        // RTC_LOG(LS_INFO) << "main_timestamp was: " << main_timestamp <<
+        //   "  updating main_timestamp to: " << results.front().timestamp;
+
+        // update the main timestamp to the earliest recovered packet timestamp
+        main_timestamp = results.front().timestamp;
+      }
+
       if (results.empty()) {
         packet_list.pop_front();
       } else {
@@ -756,7 +780,21 @@ int NetEqImpl::InsertPacketInternal(const RTPHeader& rtp_header,
   if (relative_delay) {
     stats_->RelativePacketArrivalDelay(relative_delay.value());
   }
+  // TODO(klingm@amazon.com): remove debugging
+  // RTC_LOG(LS_INFO) << "InsertPacketInternal end";
+  // packet_buffer_->LogPacketList();
   return 0;
+}
+
+void NetEqImpl::LogStats(const char *prefix) const {
+  RTC_LOG(LS_INFO) << "NetEq " << prefix <<
+    "\n sync_buffer size: " << sync_buffer_->Size() <<
+    "\n sync_buffer future: " << sync_buffer_->FutureLength() <<
+    "\n overlap length: " << expand_->overlap_length() <<
+    "\n timestamp: " << timestamp_ <<
+    "\n playout_timestamp: " << playout_timestamp_ <<
+    "\n sync_buffer end_timestamp: " << sync_buffer_->end_timestamp() <<
+    "\n controller target_level_ms: " << controller_->TargetLevelMs();
 }
 
 int NetEqImpl::GetAudioInternal(AudioFrame* audio_frame,
@@ -777,7 +815,9 @@ int NetEqImpl::GetAudioInternal(AudioFrame* audio_frame,
       lifetime_stats.concealed_samples -
           lifetime_stats.silent_concealed_samples,
       fs_hz_);
-
+  // TODO(klingm@amazon.com): remove debugging
+  // LogStats("GetAudioInternal begin");
+  // packet_buffer_->LogPacketList();
   // Check for muted state.
   if (enable_muted_state_ && expand_->Muted() && packet_buffer_->Empty()) {
     RTC_DCHECK_EQ(last_mode_, Mode::kExpand);
@@ -1010,6 +1050,8 @@ int NetEqImpl::GetAudioInternal(AudioFrame* audio_frame,
         last_mode_ == Mode::kCodecPlc)) {
     generated_noise_stopwatch_.reset();
   }
+  // TODO(klingm@amazon.com): remove debugging
+  // LogStats("GetAudioInternal end");
 
   if (decode_return_value)
     return decode_return_value;
@@ -1932,6 +1974,9 @@ int NetEqImpl::ExtractPackets(size_t required_samples,
                               PacketList* packet_list) {
   bool first_packet = true;
   bool next_packet_available = false;
+  // TODO(klingm@amazon.com): remove debugging
+  // RTC_LOG(LS_INFO) << "ExtractPackets begin";
+  // packet_buffer_->LogPacketList();
 
   const Packet* next_packet = packet_buffer_->PeekNextPacket();
   RTC_DCHECK(next_packet);
@@ -2015,6 +2060,9 @@ int NetEqImpl::ExtractPackets(size_t required_samples,
     // never be flooded and flushed.
     packet_buffer_->DiscardAllOldPackets(timestamp_);
   }
+  // TODO(klingm@amazon.com): remove debugging
+  // RTC_LOG(LS_INFO) << "ExtractPackets end";
+  // packet_buffer_->LogPacketList();
 
   return rtc::dchecked_cast<int>(extracted_samples);
 }

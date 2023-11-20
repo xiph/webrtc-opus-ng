@@ -56,6 +56,7 @@ ABSL_FLAG(bool, dtx, false, "Use DTX/CNG");
 ABSL_FLAG(int, sample_rate, 48000, "Sample rate of the input file");
 ABSL_FLAG(bool, fec, false, "Use Opus FEC");
 ABSL_FLAG(int, expected_loss, 0, "Expected packet loss percentage");
+ABSL_FLAG(int, dred, 0, "Add Deep REDundancy (in units of 10 msec. frames)");
 
 namespace webrtc {
 namespace test {
@@ -205,6 +206,7 @@ std::unique_ptr<AudioEncoder> CreateEncoder(CodecType codec_type,
       }
       config.dtx_enabled = absl::GetFlag(FLAGS_dtx);
       config.fec_enabled = absl::GetFlag(FLAGS_fec);
+      config.dred = absl::GetFlag(FLAGS_dred);
       RTC_CHECK(config.IsOk());
       return AudioEncoderOpus::MakeAudioEncoder(config, payload_type);
     }

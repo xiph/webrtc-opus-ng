@@ -46,6 +46,8 @@ struct RTC_EXPORT AudioEncoderOpusConfig {
   absl::optional<int> bitrate_bps;
 
   bool fec_enabled;
+  // amount of Deep REDundancy in units of 10 msec. frames
+  int dred;
   bool cbr_enabled;
   int max_playback_rate_hz;
 

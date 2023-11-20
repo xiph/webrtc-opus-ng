@@ -202,6 +202,29 @@ int PacketBuffer::NextHigherTimestamp(uint32_t timestamp,
   return kNotFound;
 }
 
+int PacketBuffer::NextLowerTimestamp(uint32_t timestamp,
+                                     uint32_t* next_timestamp,
+                                     uint32_t* duration) const {
+  if (Empty()) {
+    return kBufferEmpty;
+  }
+  if (!next_timestamp) {
+    return kInvalidPointer;
+  }
+  PacketList::const_reverse_iterator rit;
+  for (rit = buffer_.rbegin(); rit != buffer_.rend(); ++rit) {
+    if (rit->timestamp < timestamp) {
+      // Found a packet matching the search.
+      *next_timestamp = rit->timestamp;
+      if (duration) {
+        *duration = rit->frame->Duration();
+      }
+      return kOK;
+    }
+  }
+  return kNotFound;
+}
+
 const Packet* PacketBuffer::PeekNextPacket() const {
   return buffer_.empty() ? nullptr : &buffer_.front();
 }
@@ -269,6 +292,7 @@ size_t PacketBuffer::NumSamplesInBuffer(size_t last_decoded_length) const {
     if (packet.frame) {
       // TODO(hlundin): Verify that it's fine to count all packets and remove
       // this check.
+      // TODO(klingm@amazon.com): This should probably be removed
       if (packet.priority != Packet::Priority(0, 0)) {
         continue;
       }
@@ -324,6 +348,20 @@ void PacketBuffer::LogPacketDiscarded(int codec_level) {
   } else {
     stats_->PacketsDiscarded(1);
   }
+}
+
+void PacketBuffer::LogPacketList() const {
+  std::string line = "[ ";
+  for (const Packet& packet : buffer_) {
+    line += std::to_string(packet.timestamp);
+    line += "{ ";
+    line += std::to_string(packet.priority.codec_level);
+    line += ", ";
+    line += std::to_string(packet.priority.red_level);
+    line += "} ";
+  }
+  line += "]";
+  RTC_LOG(LS_INFO) << line;
 }
 
 }  // namespace webrtc
