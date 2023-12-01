@@ -193,6 +193,11 @@ if (use_opus_x86_optimization) {
       "src/silk/x86/VAD_sse4_1.c",
       "src/silk/x86/VQ_WMat_EC_sse4_1.c",
     ]
+    if (opus_codec_support_dred) {
+      sources += [
+        "src/dnn/x86/nnet_sse4_1.c",
+      ]
+    }
 
     configs -= [ "//build/config/compiler:chromium_code" ]
     configs += [ "//build/config/compiler:no_chromium_code" ]
@@ -516,7 +521,6 @@ static_library("opus") {
       sources += [
         "src/dnn/x86/x86_dnn_map.c",
         "src/dnn/x86/nnet_sse2.c",
-        "src/dnn/x86/nnet_sse4_1.c",
       ]
     }
     deps += [ ":opus_sse41" ]
