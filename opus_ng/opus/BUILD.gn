@@ -12,7 +12,7 @@ declare_args() {
 # If ARM optimizations shall be used to accelerate performance.
 use_opus_arm_optimization =
     current_cpu == "arm" ||
-    (current_cpu == "arm64" && (is_fuchsia || is_ios || is_win))
+    (current_cpu == "arm64" && (is_fuchsia || is_ios || is_win || is_mac))
 
 # NaCl, unlike Chrome, doesn't target SSE2 minimum, so skip optimizations for
 # the sake of simplicity.
