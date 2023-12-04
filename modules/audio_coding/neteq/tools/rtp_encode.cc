@@ -53,6 +53,7 @@ ABSL_FLAG(int,
           "RTP payload type for CNG; -1 indicates default value");
 ABSL_FLAG(int, ssrc, 0, "SSRC to write to the RTP header");
 ABSL_FLAG(bool, dtx, false, "Use DTX/CNG");
+ABSL_FLAG(bool, cbr, false, "Use Opus CBR");
 ABSL_FLAG(int, sample_rate, 48000, "Sample rate of the input file");
 ABSL_FLAG(bool, fec, false, "Use Opus FEC");
 ABSL_FLAG(int, expected_loss, 0, "Expected packet loss percentage");
@@ -207,6 +208,7 @@ std::unique_ptr<AudioEncoder> CreateEncoder(CodecType codec_type,
       config.dtx_enabled = absl::GetFlag(FLAGS_dtx);
       config.fec_enabled = absl::GetFlag(FLAGS_fec);
       config.dred = absl::GetFlag(FLAGS_dred);
+      config.cbr_enabled = absl::GetFlag(FLAGS_cbr);
       RTC_CHECK(config.IsOk());
       return AudioEncoderOpus::MakeAudioEncoder(config, payload_type);
     }
