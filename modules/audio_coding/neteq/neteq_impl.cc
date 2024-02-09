@@ -648,15 +648,29 @@ int NetEqImpl::InsertPacketInternal(const RTPHeader& rtp_header,
         new_packet.frame = std::move(result.frame);
         return new_packet;
       };
+
       uint32_t previous_timestamp;
       uint32_t duration = decoder_frame_length_;
-      int result = packet_buffer_->NextLowerTimestamp(packet.timestamp, &previous_timestamp, &duration);
+      int result = packet_buffer_->NextLowerTimestamp(packet.sequence_number, packet.timestamp, &previous_timestamp, &duration);
       if (result == kOK) {
+        // TODO(klingm@amazon.com): remove debugging
+        // RTC_LOG(LS_INFO) << "NextLowerTimestamp found: " << previous_timestamp;
         previous_timestamp += duration;
       } else {
-        previous_timestamp = sync_buffer_->end_timestamp();
+        uint16_t newest_sequence_number, gap;
+        bool have_loss = false;
+        if (packet_buffer_->NewestSequenceNumber(&newest_sequence_number)) {
+          gap = packet.sequence_number - newest_sequence_number;
+          have_loss = gap > 1 && gap <= 0xFFFF/2;
+        }
+        if (have_loss)
+          previous_timestamp = sync_buffer_->end_timestamp();
+        else
+          previous_timestamp = packet.timestamp;
       }
       uint32_t current_gap = packet.timestamp - previous_timestamp;
+      // TODO(klingm@amazon.com): sanity check current_gap
+
       // TODO(klingm@amazon.com): remove debugging
       // RTC_LOG(LS_INFO) << "insert parse payload: " << packet.timestamp <<
       //   " current gap: " << current_gap;

@@ -61,7 +61,9 @@ PacketBuffer::PacketBuffer(size_t max_number_of_packets,
                            StatisticsCalculator* stats)
     : max_number_of_packets_(max_number_of_packets),
       tick_timer_(tick_timer),
-      stats_(stats) {}
+      stats_(stats),
+      newest_sequence_number_(0),
+      insert_count_(0) {}
 
 // Destructor. All packets in the buffer will be destroyed.
 PacketBuffer::~PacketBuffer() {
@@ -81,6 +83,12 @@ bool PacketBuffer::Empty() const {
   return buffer_.empty();
 }
 
+bool PacketBuffer::NewestSequenceNumber(uint16_t *sequence_number) const {
+  if (insert_count_ == 0) return false;
+  *sequence_number = newest_sequence_number_;
+  return true;
+}
+
 int PacketBuffer::InsertPacket(Packet&& packet) {
   if (packet.empty()) {
     RTC_LOG(LS_WARNING) << "InsertPacket invalid packet";
@@ -89,6 +97,15 @@ int PacketBuffer::InsertPacket(Packet&& packet) {
 
   RTC_DCHECK_GE(packet.priority.codec_level, 0);
   RTC_DCHECK_GE(packet.priority.red_level, 0);
+
+  if (insert_count_ == 0) {
+    newest_sequence_number_ = packet.sequence_number;
+  }
+  insert_count_++;
+  if ((packet.sequence_number - newest_sequence_number_) > 0 &&
+      (packet.sequence_number - newest_sequence_number_) <= 0xFFFF/2) {
+    newest_sequence_number_ = packet.sequence_number;
+  }
 
   int return_val = kOK;
 
@@ -202,7 +219,8 @@ int PacketBuffer::NextHigherTimestamp(uint32_t timestamp,
   return kNotFound;
 }
 
-int PacketBuffer::NextLowerTimestamp(uint32_t timestamp,
+int PacketBuffer::NextLowerTimestamp(int16_t sequence_number,
+                                     uint32_t timestamp,
                                      uint32_t* next_timestamp,
                                      uint32_t* duration) const {
   if (Empty()) {
@@ -213,13 +231,19 @@ int PacketBuffer::NextLowerTimestamp(uint32_t timestamp,
   }
   PacketList::const_reverse_iterator rit;
   for (rit = buffer_.rbegin(); rit != buffer_.rend(); ++rit) {
-    if (rit->timestamp < timestamp) {
-      // Found a packet matching the search.
-      *next_timestamp = rit->timestamp;
-      if (duration) {
-        *duration = rit->frame->Duration();
+    if (timestamp != rit->timestamp &&
+        timestamp - rit->timestamp < (0xFFFFFFFF / 2)) {
+      if (sequence_number != rit->sequence_number &&
+          sequence_number - rit->sequence_number > 1) {
+        // Found a packet matching the search.
+        *next_timestamp = rit->timestamp;
+        if (duration) {
+          *duration = rit->frame->Duration();
+        }
+        return kOK;
+      } else {
+        return kNotFound;
       }
-      return kOK;
     }
   }
   return kNotFound;

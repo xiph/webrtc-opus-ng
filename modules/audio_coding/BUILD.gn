@@ -1413,7 +1413,7 @@ if (rtc_include_tests) {
 
       sources = [
         "neteq/tools/rtp_apply_loss.cc",
-        "neteq/tools/rtpplay_utils.cc",        
+        "neteq/tools/rtpplay_utils.cc",
       ]
 
       defines = audio_coding_defines
