@@ -504,7 +504,8 @@ int WebRtcOpus_DredParse(OpusDecInst *inst,
                          uint8_t *dred_data,
                          const uint8_t* encoded,
                          size_t length_bytes,
-                         int max_samples);
+                         int max_samples,
+                         int32_t *dred_end);
 
 /****************************************************************************
  * WebRtcOpus_DurationEst(...)

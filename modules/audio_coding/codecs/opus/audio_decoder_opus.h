@@ -69,7 +69,6 @@ class AudioDecoderOpusImpl final : public AudioDecoder {
   OpusDecInst* dec_state_;
   const size_t channels_;
   const int sample_rate_hz_;
-  uint32_t last_decoded_dred_timestamp_;
 };
 
 }  // namespace webrtc

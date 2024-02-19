@@ -233,8 +233,8 @@ int PacketBuffer::NextLowerTimestamp(int16_t sequence_number,
   for (rit = buffer_.rbegin(); rit != buffer_.rend(); ++rit) {
     if (timestamp != rit->timestamp &&
         timestamp - rit->timestamp < (0xFFFFFFFF / 2)) {
-      if (sequence_number != rit->sequence_number &&
-          sequence_number - rit->sequence_number > 1) {
+      uint16_t sequence_diff = sequence_number - rit->sequence_number;
+      if (sequence_diff > 1 && sequence_diff < (0xFFFF / 2)) {
         // Found a packet matching the search.
         *next_timestamp = rit->timestamp;
         if (duration) {

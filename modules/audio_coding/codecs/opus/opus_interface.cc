@@ -748,12 +748,13 @@ int WebRtcOpus_DredParse(OpusDecInst *inst,
                          uint8_t *dred_data,
                          const uint8_t* encoded,
                          size_t length_bytes,
-                         int max_samples) {
+                         int max_samples,
+                         int32_t *dred_end) {
   if (!inst->dred_decoder)
     return 0;
   // NOTE: processing *not* deferred, RDOVAE data will be decoded
   return opus_dred_parse(inst->dred_decoder, reinterpret_cast<OpusDRED *>(dred_data),
-      encoded, static_cast<opus_int32>(length_bytes), max_samples, inst->sample_rate_hz, 0);
+      encoded, static_cast<opus_int32>(length_bytes), max_samples, inst->sample_rate_hz, dred_end, 0);
 }
 
 int WebRtcOpus_DurationEst(OpusDecInst* inst,

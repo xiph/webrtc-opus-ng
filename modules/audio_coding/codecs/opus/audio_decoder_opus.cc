@@ -73,19 +73,23 @@ std::vector<AudioDecoder::ParseResult> AudioDecoderOpusImpl::ParsePayloadRedunda
     begin_timestamp -= duration;
   }
   if (recovery_timestamp_offset > 0 ) {
+    int32_t dred_end;
     rtc::CopyOnWriteBuffer dred_data(opus_dred_get_size());
     int samps = WebRtcOpus_DredParse(dec_state_,
                          dred_data.MutableData(),
                          payload.data(),
                          payload.size(),
-                         recovery_timestamp_offset);
+                         recovery_timestamp_offset,
+                         &dred_end);
+    if (dred_end < samps)
+      samps -= dred_end;
     // find the desired number of 10 msec. chunks
     int dred_count = 100*samps/sample_rate_hz_;
     int desired_dred_count = 100*recovery_timestamp_offset/sample_rate_hz_;
+    // TODO(klingm@amazon.com) - remove debugging
     // printf("got %d chunks of dred, offset %d, recovery_timestamp_offset %u\n", dred_count, desired_dred_count, recovery_timestamp_offset);
     if (dred_count > 0 && desired_dred_count > 0) {
       if (dred_count > desired_dred_count) dred_count = desired_dred_count;
-      last_decoded_dred_timestamp_ = timestamp;
       uint32_t recovery_timestamp = timestamp - dred_count*sample_rate_hz_/100;
       for (int i = 0; i < dred_count; ++i) {
         // make sure recovery_timestamp < begin_timestamp
