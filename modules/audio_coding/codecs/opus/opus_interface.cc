@@ -512,6 +512,9 @@ int16_t WebRtcOpus_DecoderCreate(OpusDecInst** inst,
             DefaultFrameSizePerChannel(state->sample_rate_hz);
       }
       state->in_dtx_mode = 0;
+#if WEBRTC_OPUS_USE_CODEC_PLC && WEBRTC_OPUS_SUPPORT_DRED
+      opus_decoder_ctl(state->decoder, OPUS_SET_COMPLEXITY(5));
+#endif
       *inst = state;
       // TODO(klingm@amazon.com): creating the DRED decoder should be made optional
       state->dred_decoder =

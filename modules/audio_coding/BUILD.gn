@@ -551,6 +551,16 @@ rtc_library("webrtc_opus_wrapper") {
   ]
 
   defines = audio_coding_defines
+  if (rtc_opus_use_codec_plc) {
+    defines += [ "WEBRTC_OPUS_USE_CODEC_PLC=1" ]
+  } else {
+    defines += [ "WEBRTC_OPUS_USE_CODEC_PLC=0" ]
+  }
+  if (rtc_opus_support_dred) {
+    defines += [ "WEBRTC_OPUS_SUPPORT_DRED=1" ]
+  } else {
+    defines += [ "WEBRTC_OPUS_SUPPORT_DRED=0" ]
+  }
 
   deps = [
     "../../api:array_view",
@@ -757,6 +767,17 @@ rtc_library("neteq") {
     "//third_party/abseil-cpp/absl/strings",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  defines = neteq_defines
+  if (rtc_opus_use_codec_plc) {
+    defines += [ "WEBRTC_OPUS_USE_CODEC_PLC=1" ]
+  } else {
+    defines += [ "WEBRTC_OPUS_USE_CODEC_PLC=0" ]
+  }
+  if (rtc_opus_support_dred) {
+    defines += [ "WEBRTC_OPUS_SUPPORT_DRED=1" ]
+  } else {
+    defines += [ "WEBRTC_OPUS_SUPPORT_DRED=0" ]
+  }
 }
 
 rtc_source_set("default_neteq_factory") {

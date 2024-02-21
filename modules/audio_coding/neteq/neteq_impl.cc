@@ -1419,11 +1419,12 @@ int NetEqImpl::Decode(PacketList* packet_list,
   }
 
   *decoded_length = 0;
+#if WEBRTC_OPUS_USE_CODEC_PLC
   // Update codec-internal PLC state.
   if ((*operation == Operation::kMerge) && decoder && decoder->HasDecodePlc()) {
     decoder->DecodePlc(1, &decoded_buffer_[*decoded_length]);
   }
-
+#endif
   int return_value;
   if (*operation == Operation::kCodecInternalCng) {
     RTC_DCHECK(packet_list->empty());

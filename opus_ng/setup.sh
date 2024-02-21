@@ -4,9 +4,9 @@ set -ex
 pushd ./
 cd ./src/opus_ng/opus
 rm -rf src
-git clone -b opus-ng https://gitlab.xiph.org/xiph/opus.git src
+git clone -b main https://gitlab.xiph.org/xiph/opus.git src
 cd ./src
-git reset --hard b75bd48d82281193681c49c00fca9773a45fb0d8
+git reset --hard 57901a6758c3bdc7481d61669812bde13d2085b8
 ./dnn/download_model.sh "735117b"
 popd
 rm -rf ./src/third_party/opus

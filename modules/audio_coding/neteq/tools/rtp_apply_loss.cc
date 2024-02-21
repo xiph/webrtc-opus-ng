@@ -117,7 +117,9 @@ int apply_loss(int argc, char **argv) {
         if (loss_file) {
             char linebuf[16];
             if (fgets(linebuf, sizeof(linebuf), loss_file)) {
-                should_write = (linebuf[0] == '0');
+                char *p = linebuf;
+                while (*p && isspace(*p)) p++;
+                should_write = *p == '0';
             } else {
                 fprintf(stderr, "Warning - no loss information in loss file for packet %d\n", count);
             }
