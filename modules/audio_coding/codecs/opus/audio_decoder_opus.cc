@@ -81,27 +81,29 @@ std::vector<AudioDecoder::ParseResult> AudioDecoderOpusImpl::ParsePayloadRedunda
                          payload.size(),
                          recovery_timestamp_offset,
                          &dred_end);
-    if (dred_end < samps)
-      samps -= dred_end;
-    // find the desired number of 10 msec. chunks
-    int dred_count = 100*samps/sample_rate_hz_;
-    int desired_dred_count = 100*recovery_timestamp_offset/sample_rate_hz_;
-    // TODO(klingm@amazon.com) - remove debugging
-    // printf("got %d chunks of dred, offset %d, recovery_timestamp_offset %u\n", dred_count, desired_dred_count, recovery_timestamp_offset);
-    if (dred_count > 0 && desired_dred_count > 0) {
-      if (dred_count > desired_dred_count) dred_count = desired_dred_count;
-      uint32_t recovery_timestamp = timestamp - dred_count*sample_rate_hz_/100;
-      for (int i = 0; i < dred_count; ++i) {
-        // make sure recovery_timestamp < begin_timestamp
-        if ((begin_timestamp == recovery_timestamp) ||
-            (begin_timestamp - recovery_timestamp) >= 0xFFFFFFFF / 2)
-          break;
-        auto p = new OpusFrame(this, dred_data, dred_count - i, timestamp);
-        std::unique_ptr<EncodedAudioFrame> frame(p);
-        // Deep REDundancy packets have a priority of 2
-        // (LBRR FEC with a priority of 1 will be preferred, if available)
-        results.emplace_back(recovery_timestamp, 2, std::move(frame));
-        recovery_timestamp += sample_rate_hz_/100;
+    if (samps > 0) {
+      if (dred_end < samps)
+        samps -= dred_end;
+      // find the desired number of 10 msec. chunks
+      int dred_count = 100*samps/sample_rate_hz_;
+      int desired_dred_count = 100*recovery_timestamp_offset/sample_rate_hz_;
+      // TODO(klingm@amazon.com) - remove debugging
+      // printf("got %d chunks of dred, offset %d, recovery_timestamp_offset %u\n", dred_count, desired_dred_count, recovery_timestamp_offset);
+      if (dred_count > 0 && desired_dred_count > 0) {
+        if (dred_count > desired_dred_count) dred_count = desired_dred_count;
+        uint32_t recovery_timestamp = timestamp - dred_count*sample_rate_hz_/100;
+        for (int i = 0; i < dred_count; ++i) {
+          // make sure recovery_timestamp < begin_timestamp
+          if ((begin_timestamp == recovery_timestamp) ||
+              (begin_timestamp - recovery_timestamp) >= 0xFFFFFFFF / 2)
+            break;
+          auto p = new OpusFrame(this, dred_data, dred_count - i, timestamp);
+          std::unique_ptr<EncodedAudioFrame> frame(p);
+          // Deep REDundancy packets have a priority of 2
+          // (LBRR FEC with a priority of 1 will be preferred, if available)
+          results.emplace_back(recovery_timestamp, 2, std::move(frame));
+          recovery_timestamp += sample_rate_hz_/100;
+        }
       }
     }
   }
