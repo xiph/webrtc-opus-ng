@@ -246,6 +246,29 @@ if (use_opus_x86_optimization) {
   }
 }
 
+if (use_opus_arm_optimization && opus_codec_support_dred) {
+  source_set("opus_arm_dotprod") {
+    sources = [
+      "src/dnn/arm/nnet_dotprod.c",
+    ]
+    configs -= [ "//build/config/compiler:chromium_code" ]
+    configs += [ "//build/config/compiler:no_chromium_code" ]
+    configs += [
+      ":opus_private_config",
+      ":opus_config",
+    ]
+
+    if (!is_debug) {
+      configs -= [ "//build/config/compiler:default_optimization" ]
+      configs += [ "//build/config/compiler:optimize_speed" ]
+    }
+
+    if (!is_win || is_clang) {
+      cflags = [ "-march=armv8.2-a+dotprod" ]
+    }
+  }
+}
+
 # Note: Do not add any defines or include_dirs to this target, those should all
 # go in the opus_private_config so they can be shared with intrinsic targets.
 static_library("opus") {
@@ -573,9 +596,9 @@ static_library("opus") {
       if (opus_codec_support_dred) {
         sources += [
           "src/dnn/arm/arm_dnn_map.c",
-          "src/dnn/arm/nnet_dotprod.c",
           "src/dnn/arm/nnet_neon.c",
         ]
+        deps += [ ":opus_arm_dotprod" ]
       }
     }
   }
