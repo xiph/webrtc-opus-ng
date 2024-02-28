@@ -119,6 +119,7 @@ config("opus_private_config") {
       defines += [
         "OPUS_ARM_MAY_HAVE_EDSP",
         "OPUS_ARM_MAY_HAVE_MEDIA",
+        "OPUS_ARM_MAY_HAVE_DOTPROD",
         "OPUS_HAVE_RTCD",
       ]
     }
