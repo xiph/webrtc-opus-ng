@@ -247,7 +247,7 @@ if (use_opus_x86_optimization) {
   }
 }
 
-if (use_opus_arm_optimization && opus_codec_support_dred) {
+if (arm_use_neon && opus_codec_support_dred) {
   source_set("opus_arm_dotprod") {
     sources = [
       "src/dnn/arm/nnet_dotprod.c",
@@ -599,7 +599,9 @@ static_library("opus") {
           "src/dnn/arm/arm_dnn_map.c",
           "src/dnn/arm/nnet_neon.c",
         ]
-        deps += [ ":opus_arm_dotprod" ]
+        if (current_cpu == "arm64") {
+          deps += [ ":opus_arm_dotprod" ]
+        }
       }
     }
   }
