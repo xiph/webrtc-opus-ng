@@ -23,7 +23,8 @@ use_opus_x86_optimization =
 # Based on the conditions in celt/arm/armcpu.c:
 # defined(_MSC_VER) || defined(__linux__).
 use_opus_arm_rtcd =
-    current_cpu == "arm" && (is_win || is_android || is_linux || is_chromeos)
+    (current_cpu == "arm" || current_cpu == "arm64") &&
+    (is_win || is_android || is_linux || is_chromeos || is_ios)
 
 config("opus_config") {
   include_dirs = [ "src/include" ]
@@ -107,6 +108,7 @@ config("opus_private_config") {
   }
 
   if (use_opus_arm_optimization) {
+    defines += [ "FLOAT_APPROX" ]
     if (current_cpu == "arm") {
       defines += [
         "OPUS_ARM_ASM",
@@ -114,7 +116,6 @@ config("opus_private_config") {
         "OPUS_ARM_INLINE_EDSP",
       ]
     }
-
     if (use_opus_arm_rtcd) {
       defines += [
         "OPUS_ARM_MAY_HAVE_EDSP",
@@ -131,13 +132,17 @@ config("opus_private_config") {
       ]
     }
 
-    if (is_ios && current_cpu == "arm64") {
-      # Runtime detection of CPU features not available on iOS.
+    if (current_cpu == "arm64" && (is_ios || is_mac)) {
       defines += [
         "OPUS_ARM_MAY_HAVE_NEON_INTR",
         "OPUS_ARM_PRESUME_NEON_INTR",
         "OPUS_ARM_PRESUME_AARCH64_NEON_INTR",
       ]
+      if (is_mac) {
+        defines += [
+          "OPUS_ARM_PRESUME_DOTPROD",
+        ]
+      }
     }
   }
 }
@@ -568,7 +573,6 @@ static_library("opus") {
 
     if (use_opus_arm_rtcd) {
       sources += [
-        "$target_gen_dir/celt_pitch_xcorr_arm_gnu.S",
         "src/celt/arm/arm_celt_map.c",
         "src/celt/arm/armcpu.c",
         "src/celt/arm/armcpu.h",
@@ -578,7 +582,10 @@ static_library("opus") {
         "src/silk/arm/arm_silk_map.c",
         "src/silk/fixed/main_FIX.h",
       ]
-      deps += [ ":convert_rtcd_assembler" ]
+      if (!is_ios) {
+        sources += [ "$target_gen_dir/celt_pitch_xcorr_arm_gnu.S" ]
+        deps += [ ":convert_rtcd_assembler" ]
+      }
     }
 
     if (arm_use_neon) {

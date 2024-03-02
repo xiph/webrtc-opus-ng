@@ -36,7 +36,7 @@ ninja -v -C ./out/Release
 cd src
 gn gen ../out/Debug-ios --args="opus_codec_support_dred=true rtc_opus_support_dred=true rtc_opus_use_codec_plc=true target_os=\"ios\" ios_enable_code_signing=false rtc_build_tools=false rtc_include_tests=false target_environment=\"device\" target_cpu=\"arm64\""
 cd ..
-ninja -v -C ./out/Release
+ninja -v -C ./out/Debug-ios
 ```
 ## Try it Out
 
