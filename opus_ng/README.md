@@ -44,7 +44,7 @@ Note: `rtp_encode` does not seem to produce any output when run in release mode,
 
 ### Neural PLC
 ```
-./out/Debug/rtp_encode ./src/resources/speech_and_misc_wb.pcm speech_and_misc_nodred.rtp --sample_rate 16000 --frame_len 20 --codec opus --fec=true --expected_loss 20
+./out/Debug/rtp_encode ./src/resources/speech_and_misc_wb.pcm speech_and_misc_nodred.rtp --sample_rate 16000 --frame_len 20 --codec opus --fec=true --expected_loss 25
 ./out/Release/rtp_apply_loss speech_and_misc_nodred.rtp speech_and_misc_nodred_loss.rtp --loss_file ./src/opus_ng/high_is_lost.txt
 ./out/Release/neteq_rtpplay speech_and_misc_nodred_loss.rtp speech_and_misc_nodred_loss.wav
 ```
@@ -52,7 +52,7 @@ Note: `rtp_encode` does not seem to produce any output when run in release mode,
 ### Deep Redundancy (DRED)
 Adding 1 second of redundancy.
 ```
-./out/Debug/rtp_encode ./src/resources/speech_and_misc_wb.pcm speech_and_misc_dred.rtp --sample_rate 16000 --frame_len 20 --codec opus --fec=true --expected_loss 20 --dred 100
+./out/Debug/rtp_encode ./src/resources/speech_and_misc_wb.pcm speech_and_misc_dred.rtp --sample_rate 16000 --frame_len 20 --codec opus --fec=true --expected_loss 25 --dred 100 --bitrate 64000
 ./out/Release/rtp_apply_loss speech_and_misc_dred.rtp speech_and_misc_dred_loss.rtp --loss_file ./src/opus_ng/high_is_lost.txt
 ./out/Release/neteq_rtpplay speech_and_misc_dred_loss.rtp speech_and_misc_dred_loss.wav
 

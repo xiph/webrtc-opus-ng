@@ -252,7 +252,7 @@ if (use_opus_x86_optimization) {
   }
 }
 
-if (arm_use_neon && opus_codec_support_dred) {
+if (use_opus_arm_optimization && arm_use_neon && opus_codec_support_dred) {
   source_set("opus_arm_dotprod") {
     sources = [
       "src/dnn/arm/nnet_dotprod.c",
